@@ -83,10 +83,10 @@ class HomeController extends GetxController {
     isError.value = false;
 
     try {
-      final add1 = '${startLocController.text} Egypt';
-      final add2 = '${secLocController.text} Egypt';
-      var add3 = '${thrLocController.text} Egypt';
-      var add4 = '${fouLocController.text} Egypt';
+      final add1 = '${startLocController.text.trim()} Egypt';
+      final add2 = '${secLocController.text.trim()} Egypt';
+      var add3 = '${thrLocController.text.trim()} Egypt';
+      var add4 = '${fouLocController.text.trim()} Egypt';
 
       // Verify at least two locations are entered
       if (startLocController.text.isEmpty || secLocController.text.isEmpty) {
@@ -99,7 +99,8 @@ class HomeController extends GetxController {
       final startLoc = await LocationService.getCoordinatesFromAddress(add1);
       if (startLoc == null ||
           (startLoc.latitude == 26.820553 &&
-              startLoc.longitude == 30.802498000000003)) {
+              startLoc.longitude == 30.802498000000003 &&
+              add1.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The first location is not valid';
       }
 
@@ -107,7 +108,8 @@ class HomeController extends GetxController {
       final secLoc = await LocationService.getCoordinatesFromAddress(add2);
       if (secLoc == null ||
           (secLoc.latitude == 26.820553 &&
-              secLoc.longitude == 30.802498000000003)) {
+              secLoc.longitude == 30.802498000000003 &&
+              add2.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The second location is not valid';
       }
 
@@ -130,7 +132,8 @@ class HomeController extends GetxController {
         final thrLoc = await LocationService.getCoordinatesFromAddress(add3);
         if (thrLoc == null ||
             (thrLoc.latitude == 26.820553 &&
-                thrLoc.longitude == 30.802498000000003)) {
+                thrLoc.longitude == 30.802498000000003 &&
+                add3.trim().toLowerCase() != 'egypt egypt')) {
           throw 'The third location is not valid';
         }
 
@@ -150,7 +153,8 @@ class HomeController extends GetxController {
         final fouLoc = await LocationService.getCoordinatesFromAddress(add4);
         if (fouLoc == null ||
             (fouLoc.latitude == 26.820553 &&
-                fouLoc.longitude == 30.802498000000003)) {
+                fouLoc.longitude == 30.802498000000003 &&
+                add4.trim().toLowerCase() != 'egypt egypt')) {
           throw 'The fourth location is not valid';
         }
 
@@ -226,7 +230,8 @@ class HomeController extends GetxController {
         );
         if (loc == null ||
             (loc.latitude == 26.820553 &&
-                loc.longitude == 30.802498000000003)) {
+                loc.longitude == 30.802498000000003 &&
+                addr.trim().toLowerCase() != 'egypt')) {
           throw 'Invalid address: $addr';
         }
         locations[addr] = loc;
@@ -383,21 +388,23 @@ class HomeController extends GetxController {
     try {
       var result = '';
       var totalDistance = 0.0;
-      final add1 = '${startLocController.text} Egypt';
-      final add2 = '${secLocController.text} Egypt';
-      var add3 = '${thrLocController.text} Egypt';
-      var add4 = '${fouLocController.text} Egypt';
+      final add1 = '${startLocController.text.trim()} Egypt';
+      final add2 = '${secLocController.text.trim()} Egypt';
+      var add3 = '${thrLocController.text.trim()} Egypt';
+      var add4 = '${fouLocController.text.trim()} Egypt';
       // Convert addresses to coordinates
       final startLoc = await LocationService.getCoordinatesFromAddress(add1);
       if (startLoc == null ||
           (startLoc.latitude == 26.820553 &&
-              startLoc.longitude == 30.802498000000003)) {
+              startLoc.longitude == 30.802498000000003 &&
+              add1.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The first location is not valid';
       }
       final secLoc = await LocationService.getCoordinatesFromAddress(add2);
       if (secLoc == null ||
           (secLoc.latitude == 26.820553 &&
-              secLoc.longitude == 30.802498000000003)) {
+              secLoc.longitude == 30.802498000000003 &&
+              add2.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The second location is not valid';
       }
       // Calculate distance between start and second location
@@ -415,7 +422,8 @@ class HomeController extends GetxController {
         final thrLoc = await LocationService.getCoordinatesFromAddress(add3);
         if (thrLoc == null ||
             (thrLoc.latitude == 26.820553 &&
-                thrLoc.longitude == 30.802498000000003)) {
+                thrLoc.longitude == 30.802498000000003 &&
+                add3.trim().toLowerCase() != 'egypt egypt')) {
           throw 'The third location is not valid';
         }
         final dist2 = LocationService.calculateDistance(
@@ -432,7 +440,8 @@ class HomeController extends GetxController {
         final fouLoc = await LocationService.getCoordinatesFromAddress(add4);
         if (fouLoc == null ||
             (fouLoc.latitude == 26.820553 &&
-                fouLoc.longitude == 30.802498000000003)) {
+                fouLoc.longitude == 30.802498000000003 &&
+                add4.trim().toLowerCase() != 'egypt egypt')) {
           throw 'The fourth location is not valid';
         }
         final dist3 = LocationService.calculateDistance(
