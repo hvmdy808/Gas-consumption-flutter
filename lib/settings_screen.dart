@@ -1,69 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:gas_app/home_screen.dart';
 import 'package:gas_app/preferences_services.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  final TextEditingController _ccController = TextEditingController();
-  final TextEditingController _gasTypeController = TextEditingController();
-  String _errorText = '';
+// Controller for managing Settings state
+class SettingsController extends GetxController {
+  final ccController = TextEditingController();
+  final gasTypeController = TextEditingController();
+  final errorText = ''.obs;
 
   @override
-  void initState() {
-    super.initState();
-    _loadSavedValues();
+  void onInit() {
+    super.onInit();
+    loadSavedValues();
   }
 
-  Future<void> _loadSavedValues() async {
+  @override
+  void onClose() {
+    ccController.dispose();
+    gasTypeController.dispose();
+    super.onClose();
+  }
+
+  Future<void> loadSavedValues() async {
     final vehicleDetails = await PreferencesService.getVehicleDetails();
-    setState(() {
-      if (vehicleDetails['cc'] != null) {
-        _ccController.text = vehicleDetails['cc'].toString();
-      }
-      if (vehicleDetails['gasType'] != null) {
-        _gasTypeController.text = vehicleDetails['gasType'].toString();
-      }
-    });
+    if (vehicleDetails['cc'] != null) {
+      ccController.text = vehicleDetails['cc'].toString();
+    }
+    if (vehicleDetails['gasType'] != null) {
+      gasTypeController.text = vehicleDetails['gasType'].toString();
+    }
   }
 
-  void _validateAndSave() {
-    setState(() {
-      _errorText = '';
-    });
+  void validateAndSave() {
+    // Reset error text
+    errorText.value = '';
 
     // Check if fields are empty
-    if (_ccController.text.isEmpty || _gasTypeController.text.isEmpty) {
-      setState(() {
-        _errorText = 'You must enter cc and gasoline type numbers';
-      });
+    if (ccController.text.isEmpty || gasTypeController.text.isEmpty) {
+      errorText.value = 'You must enter cc and gasoline type numbers';
       return;
     }
 
     try {
-      final cc = int.parse(_ccController.text);
-      final gasType = int.parse(_gasTypeController.text);
+      final cc = int.parse(ccController.text);
+      final gasType = int.parse(gasTypeController.text);
 
       // Validate CC range
       if (cc < 50 || cc > 7000) {
-        setState(() {
-          _errorText = 'Invalid cc (must be between 50 and 7000)';
-        });
+        errorText.value = 'Invalid cc (must be between 50 and 7000)';
         return;
       }
 
       // Validate gas type
       if (![80, 92, 95].contains(gasType)) {
-        setState(() {
-          _errorText = 'Invalid gasoline type (must be 80, 92, or 95)';
-        });
+        errorText.value = 'Invalid gasoline type (must be 80, 92, or 95)';
         return;
       }
 
@@ -72,14 +62,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Get.back();
       });
     } catch (e) {
-      setState(() {
-        _errorText = 'Please enter valid numbers';
-      });
+      errorText.value = 'Please enter valid numbers';
     }
   }
+}
+
+// Stateless SettingsScreen widget
+class SettingsScreen extends StatelessWidget {
+  SettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Initialize controller
+    final SettingsController controller = Get.put(SettingsController());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vehicle Settings'),
@@ -100,7 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _ccController,
+              controller: controller.ccController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 hintText: 'Cubic capacity here',
@@ -118,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _gasTypeController,
+              controller: controller.gasTypeController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 hintText: 'Type of gasoline here',
@@ -128,22 +124,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Error Text
-            if (_errorText.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Text(
-                  _errorText,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            Obx(
+              () =>
+                  controller.errorText.value.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Text(
+                          controller.errorText.value,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                      : const SizedBox.shrink(),
+            ),
 
-            // Next Button
+            // Save Button
             ElevatedButton(
-              onPressed: _validateAndSave,
+              onPressed: controller.validateAndSave,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -156,12 +158,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _ccController.dispose();
-    _gasTypeController.dispose();
-    super.dispose();
   }
 }
