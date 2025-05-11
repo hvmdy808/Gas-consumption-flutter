@@ -85,10 +85,10 @@ class HomeController extends GetxController {
     // Check for duplicates
     final locations =
         [
-          startLocController.text.trim(),
-          secLocController.text.trim(),
-          thrLocController.text.trim(),
-          fouLocController.text.trim(),
+          startLocController.text.trim().toLowerCase(),
+          secLocController.text.trim().toLowerCase(),
+          thrLocController.text.trim().toLowerCase(),
+          fouLocController.text.trim().toLowerCase(),
         ].where((text) => text.isNotEmpty).toList();
 
     final uniqueLocations = locations.toSet().toList();
@@ -101,10 +101,10 @@ class HomeController extends GetxController {
     }
 
     try {
-      final add1 = '${startLocController.text.trim()} Egypt';
-      final add2 = '${secLocController.text.trim()} Egypt';
-      var add3 = '${thrLocController.text.trim()} Egypt';
-      var add4 = '${fouLocController.text.trim()} Egypt';
+      final add1 = '${startLocController.text.trim().toLowerCase()} Egypt';
+      final add2 = '${secLocController.text.trim().toLowerCase()} Egypt';
+      var add3 = '${thrLocController.text.trim().toLowerCase()} Egypt';
+      var add4 = '${fouLocController.text.trim().toLowerCase()} Egypt';
 
       // Verify at least two locations are entered
       if (startLocController.text.isEmpty || secLocController.text.isEmpty) {
@@ -222,10 +222,10 @@ class HomeController extends GetxController {
     // Check for duplicates
     final locations =
         [
-          startLocController.text.trim(),
-          secLocController.text.trim(),
-          thrLocController.text.trim(),
-          fouLocController.text.trim(),
+          startLocController.text.trim().toLowerCase(),
+          secLocController.text.trim().toLowerCase(),
+          thrLocController.text.trim().toLowerCase(),
+          fouLocController.text.trim().toLowerCase(),
         ].where((text) => text.isNotEmpty).toList();
 
     final uniqueLocations = locations.toSet().toList();
@@ -405,10 +405,10 @@ class HomeController extends GetxController {
     // Check for duplicates
     final locations =
         [
-          startLocController.text.trim(),
-          secLocController.text.trim(),
-          thrLocController.text.trim(),
-          fouLocController.text.trim(),
+          startLocController.text.trim().toLowerCase(),
+          secLocController.text.trim().toLowerCase(),
+          thrLocController.text.trim().toLowerCase(),
+          fouLocController.text.trim().toLowerCase(),
         ].where((text) => text.isNotEmpty).toList();
 
     final uniqueLocations = locations.toSet().toList();
