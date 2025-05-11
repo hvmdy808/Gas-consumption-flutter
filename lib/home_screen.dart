@@ -201,6 +201,23 @@ class HomeController extends GetxController {
     resultText.value = '';
     isError.value = false;
 
+    // Check for duplicates
+    final locations =
+        [
+          startLocController.text.trim(),
+          secLocController.text.trim(),
+          thrLocController.text.trim(),
+          fouLocController.text.trim(),
+        ].where((text) => text.isNotEmpty).toList();
+
+    final uniqueLocations = locations.toSet().toList();
+    if (locations.length != uniqueLocations.length) {
+      errorText.value = 'All locations must be different.';
+      isError.value = true;
+      isCalculating.value = false;
+      return;
+    }
+
     try {
       // Check that we have enough locations to optimize
       if (startLocController.text.isEmpty) {
@@ -370,10 +387,10 @@ class HomeController extends GetxController {
     // Check for duplicates
     final locations =
         [
-          startLocController.text,
-          secLocController.text,
-          thrLocController.text,
-          fouLocController.text,
+          startLocController.text.trim(),
+          secLocController.text.trim(),
+          thrLocController.text.trim(),
+          fouLocController.text.trim(),
         ].where((text) => text.isNotEmpty).toList();
 
     final uniqueLocations = locations.toSet().toList();
