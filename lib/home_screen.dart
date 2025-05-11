@@ -82,6 +82,24 @@ class HomeController extends GetxController {
     errorText.value = '';
     isError.value = false;
 
+    // Check for duplicates
+    final locations =
+        [
+          startLocController.text.trim(),
+          secLocController.text.trim(),
+          thrLocController.text.trim(),
+          fouLocController.text.trim(),
+        ].where((text) => text.isNotEmpty).toList();
+
+    final uniqueLocations = locations.toSet().toList();
+    if (locations.length != uniqueLocations.length) {
+      errorText.value = 'All locations must be different.';
+      isError.value = true;
+      isError.value = true;
+      isCalculating.value = false;
+      return;
+    }
+
     try {
       final add1 = '${startLocController.text.trim()} Egypt';
       final add2 = '${secLocController.text.trim()} Egypt';
