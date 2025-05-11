@@ -95,7 +95,6 @@ class HomeController extends GetxController {
     if (locations.length != uniqueLocations.length) {
       errorText.value = 'All locations must be different.';
       isError.value = true;
-      isError.value = true;
       isCalculating.value = false;
       return;
     }
@@ -144,6 +143,7 @@ class HomeController extends GetxController {
           '\nDistance between ${startLocController.text} to ${secLocController.text} = ${dist1.toStringAsFixed(2)} km';
 
       var lastLoc = secLoc;
+      var lastAdd = add2;
 
       // Process third location if provided
       if (thrLocController.text.isNotEmpty) {
@@ -163,8 +163,9 @@ class HomeController extends GetxController {
         );
 
         result +=
-            '\nDistance between ${secLocController.text} to ${thrLocController.text} = ${dist2.toStringAsFixed(2)} km';
+            '\nDistance between $lastAdd to ${thrLocController.text} = ${dist2.toStringAsFixed(2)} km';
         lastLoc = thrLoc;
+        lastAdd = add3;
       }
       // Process fourth location if provided
       if (fouLocController.text.isNotEmpty) {
@@ -184,8 +185,9 @@ class HomeController extends GetxController {
         );
 
         result +=
-            '\nDistance between ${thrLocController.text} to ${fouLocController.text} = ${dist3.toStringAsFixed(2)} km';
+            '\nDistance between $lastAdd to ${fouLocController.text} = ${dist3.toStringAsFixed(2)} km';
         lastLoc = fouLoc;
+        lastAdd = add4;
       }
 
       // Add return trip if selected
@@ -198,13 +200,14 @@ class HomeController extends GetxController {
         );
 
         result +=
-            '\nDistance between ${fouLocController.text} to ${startLocController.text} = ${dist4.toStringAsFixed(2)} km';
+            '\nDistance between $lastAdd to ${startLocController.text} = ${dist4.toStringAsFixed(2)} km';
       }
 
       resultText.value = result;
       isCalculating.value = false;
       enableDetails.value = false;
     } catch (e) {
+      resultText.value = '';
       errorText.value = e.toString();
       isError.value = true;
       isCalculating.value = false;
