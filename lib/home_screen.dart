@@ -569,14 +569,14 @@ class HomeScreen extends StatelessWidget {
             ),
             Obx(
               () => LocationInput(
-                hint: 'Third place here',
+                hint: 'Third place here (optional)',
                 controller: controller.thrLocController,
                 enabled: controller.locationsEnabled.value,
               ),
             ),
             Obx(
               () => LocationInput(
-                hint: 'Fourth place here',
+                hint: 'Fourth place here (optional)',
                 controller: controller.fouLocController,
                 enabled: controller.locationsEnabled.value,
               ),
