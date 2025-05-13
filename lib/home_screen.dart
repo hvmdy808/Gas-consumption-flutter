@@ -7,6 +7,7 @@ import 'package:gas_app/result_card.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 
 // Controller class to hold all the state and logic
@@ -27,6 +28,10 @@ class HomeController extends GetxController {
   final gasType = 0.obs;
   final locationsEnabled = false.obs;
   var enableDetails = false.obs;
+  var enableMaps = false.obs;
+  var originalMap = false.obs;
+  var bestMap = false.obs;
+  final locationsViewed = <Location>[];
 
   @override
   void onInit() {
@@ -57,6 +62,8 @@ class HomeController extends GetxController {
   void getCurrentLocation() async {
     isLocationFetching.value = true;
     errorText.value = '';
+    locationsViewed.clear();
+    enableMaps.value = false;
 
     try {
       final position = await LocationService.getCurrentLocation();
@@ -70,6 +77,7 @@ class HomeController extends GetxController {
       locationsEnabled.value = true;
     } catch (e) {
       isLocationFetching.value = false;
+      enableMaps.value = false;
       errorText.value = e.toString();
       isError.value = true;
     }
@@ -79,8 +87,11 @@ class HomeController extends GetxController {
   Future<void> showDetails() async {
     _loadVehicleDetails();
     isCalculating.value = true;
+    resultText.value = '';
     errorText.value = '';
     isError.value = false;
+    locationsViewed.clear();
+    enableMaps.value = false;
 
     // Check for duplicates
     final locations =
@@ -96,6 +107,7 @@ class HomeController extends GetxController {
       errorText.value = 'All locations must be different.';
       isError.value = true;
       isCalculating.value = false;
+      enableMaps.value = false;
       return;
     }
 
@@ -110,7 +122,7 @@ class HomeController extends GetxController {
         throw 'Add at least starting and second location.';
       }
 
-      var result = resultText.value;
+      var result = '';
 
       // Get coordinates for starting location
       final startLoc = await LocationService.getCoordinatesFromAddress(add1);
@@ -120,6 +132,7 @@ class HomeController extends GetxController {
               add1.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The first location is not valid';
       }
+      locationsViewed.add(startLoc);
 
       // Get coordinates for second location
       final secLoc = await LocationService.getCoordinatesFromAddress(add2);
@@ -140,10 +153,11 @@ class HomeController extends GetxController {
 
       // Add the distance to the result
       result +=
-          '\nDistance between ${startLocController.text} to ${secLocController.text} = ${dist1.toStringAsFixed(2)} km';
+          'Distance between ${startLocController.text} to ${secLocController.text} = ${dist1.toStringAsFixed(2)} km';
 
       var lastLoc = secLoc;
       var lastAdd = add2;
+      locationsViewed.add(secLoc);
 
       // Process third location if provided
       if (thrLocController.text.isNotEmpty) {
@@ -166,6 +180,7 @@ class HomeController extends GetxController {
             '\nDistance between $lastAdd to ${thrLocController.text} = ${dist2.toStringAsFixed(2)} km';
         lastLoc = thrLoc;
         lastAdd = add3;
+        locationsViewed.add(thrLoc);
       }
       // Process fourth location if provided
       if (fouLocController.text.isNotEmpty) {
@@ -188,6 +203,7 @@ class HomeController extends GetxController {
             '\nDistance between $lastAdd to ${fouLocController.text} = ${dist3.toStringAsFixed(2)} km';
         lastLoc = fouLoc;
         lastAdd = add4;
+        locationsViewed.add(fouLoc);
       }
 
       // Add return trip if selected
@@ -198,19 +214,22 @@ class HomeController extends GetxController {
           startLoc.latitude,
           startLoc.longitude,
         );
-
+        locationsViewed.add(startLoc);
         result +=
             '\nDistance between $lastAdd to ${startLocController.text} = ${dist4.toStringAsFixed(2)} km';
       }
-
       resultText.value = result;
       isCalculating.value = false;
       enableDetails.value = false;
+      enableMaps.value = true;
+      originalMap.value = true;
+      bestMap.value = false;
     } catch (e) {
       resultText.value = '';
       errorText.value = e.toString();
       isError.value = true;
       isCalculating.value = false;
+      enableMaps.value = false;
     }
   }
 
@@ -221,6 +240,8 @@ class HomeController extends GetxController {
     errorText.value = '';
     resultText.value = '';
     isError.value = false;
+    locationsViewed.clear();
+    enableMaps.value = false;
 
     // Check for duplicates
     final locations =
@@ -236,6 +257,7 @@ class HomeController extends GetxController {
       errorText.value = 'All locations must be different.';
       isError.value = true;
       isCalculating.value = false;
+      enableMaps.value = false;
       return;
     }
 
@@ -278,6 +300,7 @@ class HomeController extends GetxController {
       // Start with the first location
       var currentLocation = startLocController.text;
       var routeDesc = currentLocation;
+      locationsViewed.add(locations[currentLocation]!);
       var totalDistance = 0.0;
 
       // Create a set of unvisited locations (excluding the start)
@@ -308,6 +331,7 @@ class HomeController extends GetxController {
 
         // Move to the next location
         currentLocation = nearest;
+        locationsViewed.add(locations[nearest]!);
         unvisited.remove(nearest);
       }
 
@@ -322,6 +346,7 @@ class HomeController extends GetxController {
         totalDistance += returnDistance;
         routeDesc +=
             ' → (${returnDistance.toStringAsFixed(2)} km) → ${startLocController.text}';
+        locationsViewed.add(locations[startLocController.text]!);
       }
 
       // Add total distance to result
@@ -341,14 +366,17 @@ class HomeController extends GetxController {
       resultText.value = routeDesc;
       isCalculating.value = false;
       enableDetails.value = false;
+      enableMaps.value = true;
+      originalMap.value = false;
+      bestMap.value = true;
     } catch (e) {
       errorText.value = e.toString();
       isError.value = true;
+      enableMaps.value = false;
       isCalculating.value = false;
     }
   }
 
-  // Helper method to calculate fuel cost based on gas type
   double _calculateFuelCost() {
     switch (gasType.value) {
       case 80:
@@ -362,7 +390,6 @@ class HomeController extends GetxController {
     }
   }
 
-  // Helper method to calculate fuel consumption based on engine size
   Map<String, double> _calculateFuelConsumption(double distanceInKm) {
     double minConsumption;
     double maxConsumption;
@@ -397,11 +424,14 @@ class HomeController extends GetxController {
     errorText.value = '';
     resultText.value = '';
     isError.value = false;
+    locationsViewed.clear();
+    enableMaps.value = false;
 
     if (startLocController.text.isEmpty || secLocController.text.isEmpty) {
       errorText.value = 'Please enter at least starting and second location.';
       isError.value = true;
       isCalculating.value = false;
+      enableMaps.value = false;
       return;
     }
 
@@ -419,6 +449,7 @@ class HomeController extends GetxController {
       errorText.value = 'All locations must be different.';
       isError.value = true;
       isCalculating.value = false;
+      enableMaps.value = false;
       return;
     }
 
@@ -438,6 +469,7 @@ class HomeController extends GetxController {
               add1.trim().toLowerCase() != 'egypt egypt')) {
         throw 'The first location is not valid';
       }
+      locationsViewed.add(startLoc);
       final secLoc = await LocationService.getCoordinatesFromAddress(add2);
       if (secLoc == null ||
           (secLoc.latitude == 26.820553 &&
@@ -454,6 +486,7 @@ class HomeController extends GetxController {
       );
       totalDistance += dist1;
       var lastLoc = secLoc;
+      locationsViewed.add(secLoc);
 
       // Process third location if provided
       if (thrLocController.text.isNotEmpty) {
@@ -472,6 +505,7 @@ class HomeController extends GetxController {
         );
         totalDistance += dist2;
         lastLoc = thrLoc;
+        locationsViewed.add(thrLoc);
       }
       // Process fourth location if provided
       if (fouLocController.text.isNotEmpty) {
@@ -490,6 +524,7 @@ class HomeController extends GetxController {
         );
         totalDistance += dist3;
         lastLoc = fouLoc;
+        locationsViewed.add(fouLoc);
       }
 
       // Add return trip if selected
@@ -501,6 +536,7 @@ class HomeController extends GetxController {
           startLoc.longitude,
         );
         totalDistance += dist4;
+        locationsViewed.add(startLoc);
       }
       result += 'Total distance = ${totalDistance.toStringAsFixed(2)} km';
       final costPerLiter = _calculateFuelCost();
@@ -512,17 +548,49 @@ class HomeController extends GetxController {
           '\nEstimated fuel cost: ${(fuelEstimate['min']! * costPerLiter).toStringAsFixed(2)} - ${(fuelEstimate['max']! * costPerLiter).toStringAsFixed(2)} LE';
       resultText.value = result;
       enableDetails.value = true;
-
-      // Enable best route button if appropriate
-      // if (wantBestRoute.value && thrLocController.text.isNotEmpty) {
-      //   wantBestRoute.value = true;
-      // }
+      enableMaps.value = true;
+      originalMap.value = true;
+      bestMap.value = false;
     } catch (e) {
       errorText.value = e.toString();
       isError.value = true;
+      enableMaps.value = false;
     } finally {
       // This ensures isCalculating is always reset
       isCalculating.value = false;
+    }
+  }
+
+  Future<void> showMap() async {
+    if (locationsViewed.length < 2) {
+      throw 'At least 2 locations needed.';
+    }
+
+    String origin =
+        '${locationsViewed[0].latitude},${locationsViewed[0].longitude}';
+    String destination =
+        '${locationsViewed[locationsViewed.length - 1].latitude},${locationsViewed[locationsViewed.length - 1].longitude}';
+
+    String waypoints = '';
+    for (int i = 1; i < locationsViewed.length - 1; i++) {
+      waypoints +=
+          '${locationsViewed[i].latitude},${locationsViewed[i].longitude}';
+      if (i != locationsViewed.length - 2) {
+        waypoints += '|';
+      }
+    }
+
+    String url =
+        'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination';
+
+    if (waypoints.isNotEmpty) {
+      url += '&waypoints=$waypoints';
+    }
+    url += '&travelmode=driving';
+    print(url);
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
     }
   }
 }
@@ -532,7 +600,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize controller
     final controller = Get.put(HomeController());
     return Scaffold(
       appBar: AppBar(
@@ -707,6 +774,20 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            //Row(
+            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //children: [
+            Obx(() {
+              return TextButton.icon(
+                icon: Icon(Icons.map),
+                onPressed:
+                    controller.enableMaps.value ? controller.showMap : null,
+                label: Text('Show map'),
+              );
+            }),
+            //],
+            //),
           ],
         ),
       ),
