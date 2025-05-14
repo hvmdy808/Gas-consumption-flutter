@@ -565,6 +565,13 @@ class HomeController extends GetxController {
     if (locationsViewed.length < 2) {
       throw 'At least 2 locations needed.';
     }
+    for (Location loc in locationsViewed) {
+      if (loc.longitude == 30.802498000000003 && loc.latitude == 26.820553) {
+        errorText.value = "Egypt is not a specific location to show in the map";
+        resultText.value = "";
+        return;
+      }
+    }
 
     String origin =
         '${locationsViewed[0].latitude},${locationsViewed[0].longitude}';
